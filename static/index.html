@@ -38,8 +38,10 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
         if (xhr.readyState==4) {
             try {
                 if (xhr.status==200) {
-                    //XXX: parse some JSON from the request!
-                    //XXX: Pass the data to the callback!
+                    //XXX: parse some JSON from the request! ******
+                    //XXX: Pass the data to the callback! ******
+                    var data = JSON.parse(xhr.responseText); // parse the JSON
+                    callback(data); // callback is the function that is passed in
                 }
             } 
             catch(e) {
@@ -47,9 +49,13 @@ function sendJSONXMLHTTPRequest(url, objects, callback) {
             }
         }
     };
-    //XXX: POST to a URL
-    //XXX: set the mimetype and the accept headers!
+    //XXX: POST to a URL ******
+    //XXX: set the mimetype and the accept headers!  *******
     // Remember to use application/json !
+    xhr.open("POST", url, true);
+    xhr.setRequestHeader("Content-Type", "application/json"); // set the mimetype
+    xhr.setRequestHeader("Accept", "application/json"); // set the accept header
+    xhr.send(JSON.stringify(objects));
 }
 
 
@@ -137,8 +143,12 @@ function getPosition(e) {
 function addEntity(entity, data) {
     world[entity] = data;
     drawNextFrame(); // (but should we?)
-    //XXX: Send a XHTML Request that updates the entity you just  modified!
-
+    //XXX: Send a XHTML Request that updates the entity you just  modified! ******
+    var xhr = new XMLHttpRequest(); 
+    xhr.open("PUT", "http://"+host+"/entity/"+entity, true);
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.setRequestHeader("Accept", "application/json");
+    xhr.send(JSON.stringify(data));
 }
 
 var counter = 0;
@@ -261,8 +271,20 @@ mouse.mousedraggers.push(function(x,y,clicked,e) {
 
 
 function update() {
-    //XXX: TODO Get the world from the webservice using a XMLHTTPRequest
-    drawFrame();
+    //XXX: TODO Get the world from the webservice using a XMLHTTPRequest ****
+    let xhr = new XMLHttpRequest();
+    xhr.open('GET', 'http://localhost:8080/world', true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    xhr.setRequestHeader('Accept', 'application/json');
+    xhr.onload = function() {
+        if (xhr.status === 200) {
+            world = JSON.parse(xhr.responseText);
+            drawNextFrame();
+        }
+    };
+    xhr.send();
+
+
 }
 
 // 30 frames per second
